@@ -42,6 +42,7 @@ RUN apt-get update && \
         ros-humble-tf-transformations \
         ros-humble-camera-ros \
         ros-humble-ackermann-msgs \
+        ros-humble-diagnostic-updater \
         python3-transforms3d && \
     rm -rf /var/lib/apt/lists/*
 
