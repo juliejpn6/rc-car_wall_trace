@@ -1,7 +1,7 @@
 wall_follow_node:
   ros__parameters:
     side: 'left'
-    desired_distance: 0.50
+    desired_distance: 0.20
     lookahead_distance: 0.30
     kp: 1.0
     ki: 0.0
@@ -13,4 +13,4 @@ wall_follow_node:
     ray_angle_b: -70.0
     max_steering_angle: 0.30
     drive_topic: '/drive'
-    front_stop_distance: 0.5
+    front_stop_distance: 0.10
