@@ -110,7 +110,7 @@ class WallFollowNode(Node):
             # 両壁あり: 中央を走る
             # error > 0 → 左に寄りすぎ → 右に切る(+)
             # error < 0 → 右に寄りすぎ → 左に切る(-)
-            error = left_dist - right_dist
+            error = right_dist - left_dist
 
         self.error_history.append(error)
         smoothed_error = sum(self.error_history) / len(self.error_history)
