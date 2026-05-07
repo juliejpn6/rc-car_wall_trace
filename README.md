@@ -206,3 +206,60 @@ bash /root/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/start_drive.s
     ↓
 /pwm_driver_node → GPIO PWM出力
 \`\`\`
+
+---
+
+## 前提条件：Dockerイメージのビルド
+
+このプロジェクトはDockerイメージ `ros2_humble` が必要です。
+初回のみ以下の手順でビルドしてください。
+
+### Dockerfileの作成
+
+🖥️ **ホスト（RPi）** にて：
+
+\`\`\`bash
+mkdir -p ~/ros2_docker
+cat << 'DOCKERFILE' > ~/ros2_docker/Dockerfile
+FROM arm64v8/ros:humble
+SHELL ["/bin/bash", "-c"]
+
+RUN apt-get update --fix-missing && \
+    apt-get install -y \
+        git nano vim \
+        python3-pip \
+        python3-colcon-common-extensions \
+        python3-rosdep \
+        tmux && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+    apt-get install -y \
+        ros-humble-rmw-cyclonedds-cpp \
+        ros-humble-demo-nodes-cpp \
+        ros-humble-demo-nodes-py \
+        ros-humble-tf-transformations \
+        ros-humble-camera-ros \
+        ros-humble-ackermann-msgs \
+        python3-transforms3d && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install opencv-python-headless pigpio
+
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc
+
+WORKDIR /root/f1tenth_ws
+DOCKERFILE
+\`\`\`
+
+### イメージのビルド
+
+\`\`\`bash
+cd ~/ros2_docker
+docker build -t ros2_humble .
+\`\`\`
+
+> ⚠️ ビルドには**10〜20分**かかります（初回のみ）
+
+ビルド完了後、クイックスタートの手順③から進めてください。
