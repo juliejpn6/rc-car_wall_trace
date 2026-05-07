@@ -32,7 +32,7 @@ RPLidar A1M8-R6は**物理的に180°反転して搭載**されています。
 | -90° | 車両左側 |
 | +90° | 車両右側 |
 
-この補正のため、`bringup_tt02_launch.py`のTF設定では `yaw=3.14159` を設定しています。
+この補正のため、\`bringup_tt02_launch.py\`のTF設定では \`yaw=3.14159\` を設定しています。
 
 ---
 
@@ -40,24 +40,24 @@ RPLidar A1M8-R6は**物理的に180°反転して搭載**されています。
 
 - **OS**: Raspbian Trixie 64-bit
 - **ROS2**: Humble（Dockerコンテナ内で動作）
-- **Dockerイメージ**: `ros2_humble`
+- **Dockerイメージ**: \`ros2_humble\`
 
 ### パッケージ一覧
 
 | パッケージ | 役割 |
 |-----------|------|
-| `ackermann_mux` | /driveトピックの優先度付き多重化 |
-| `encoder_odometry` | エンコーダによるオドメトリ計算 |
-| `f1tenth_stack` | メインlaunchファイル・アルゴリズム群 |
-| `pigpio_pwm_driver` | ステアリング・スロットルPWM制御 |
-| `sllidar_ros2` | RPLidar A1ドライバ |
-| `wall_follow` | PID壁追従アルゴリズム |
+| \`ackermann_mux\` | /driveトピックの優先度付き多重化 |
+| \`encoder_odometry\` | エンコーダによるオドメトリ計算 |
+| \`f1tenth_stack\` | メインlaunchファイル・アルゴリズム群 |
+| \`pigpio_pwm_driver\` | ステアリング・スロットルPWM制御 |
+| \`sllidar_ros2\` | RPLidar A1ドライバ |
+| \`wall_follow\` | PID壁追従アルゴリズム |
 
 ---
 
-## セットアップ手順
+## クイックスタート
 
-### 1. リポジトリのクローン
+### ① リポジトリのクローン
 
 🖥️ **ホスト（RPi）** にて：
 
@@ -67,51 +67,81 @@ cd ~/f1tenth_ws/src
 git clone https://github.com/juliejpn6/rc-car_wall_trace.git f1tenth_system
 \`\`\`
 
-### 2. Dockerコンテナの起動
-
-🖥️ **ホスト（RPi）** にて：
-
-\`\`\`bash
-cd ~/f1tenth_ws/src/f1tenth_system/scripts
-bash run_container.sh
-\`\`\`
-
-### 3. ビルド
-
-🐳 **Docker内** にて：
-
-\`\`\`bash
-cd /root/f1tenth_ws
-colcon build --packages-skip vesc_ackermann vesc_driver vesc_msgs vesc
-source install/setup.bash
-\`\`\`
-
-### 4. pigpiodの起動確認
+### ② pigpiodを起動
 
 🖥️ **ホスト（RPi）** にて：
 
 \`\`\`bash
 sudo systemctl start pigpiod
-sudo systemctl status pigpiod
 \`\`\`
 
----
+### ③ Dockerコンテナを起動（初回）
 
-## 走行手順
+🖥️ **ホスト（RPi）** にて：
 
-### 壁追従（Wall Follow）
+\`\`\`bash
+bash ~/f1tenth_ws/src/f1tenth_system/scripts/run_container.sh
+\`\`\`
+
+### ④ ビルド
 
 🐳 **Docker内** にて：
 
 \`\`\`bash
-# 全ノード起動
-ros2 launch f1tenth_stack bringup_tt02_launch.py
+bash /root/f1tenth_ws/src/f1tenth_system/scripts/build.sh
+source /root/f1tenth_ws/install/setup.bash
+\`\`\`
 
-# 別ターミナルで走行開始
-ros2 service call /wall_follow_node/enable std_srvs/srv/SetBool "{data: true}"
+### ⑤ システム起動
 
-# 停止
-ros2 service call /wall_follow_node/enable std_srvs/srv/SetBool "{data: false}"
+🐳 **Docker内** にて：
+
+\`\`\`bash
+bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh
+\`\`\`
+
+### ⑥ 走行開始・停止
+
+🐳 **Docker内（別ターミナル）** にて：
+
+\`\`\`bash
+# 別ターミナルでコンテナに接続（ホスト側で実行）
+bash ~/f1tenth_ws/src/f1tenth_system/scripts/resume_container.sh
+
+# 走行開始
+bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh --enable
+
+# 走行停止
+bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh --disable
+\`\`\`
+
+---
+
+## スクリプト一覧
+
+\`scripts/\` フォルダに以下のスクリプトが用意されています。
+
+| スクリプト | 実行環境 | 説明 |
+|-----------|---------|------|
+| \`run_container.sh\` | 🖥️ ホスト（RPi） | Dockerコンテナを**初回作成**して起動 |
+| \`resume_container.sh\` | 🖥️ ホスト（RPi） | 既存コンテナに**再接続** |
+| \`build.sh\` | 🐳 Docker内 | ワークスペースを**ビルド** |
+| \`start_drive.sh\` | 🐳 Docker内 | 全ノードを起動・走行開始・停止 |
+
+### 2回目以降の起動手順
+
+\`\`\`bash
+# ① ホスト側
+sudo systemctl start pigpiod
+bash ~/f1tenth_ws/src/f1tenth_system/scripts/resume_container.sh
+
+# ② Docker内
+source /root/f1tenth_ws/install/setup.bash
+bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh
+
+# ③ 別ターミナル（ホスト側で実行してDocker内に入る）
+bash ~/f1tenth_ws/src/f1tenth_system/scripts/resume_container.sh
+bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh --enable
 \`\`\`
 
 ---
