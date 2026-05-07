@@ -64,7 +64,16 @@ RPLidar A1M8-R6は**物理的に180°反転して搭載**されています。
 \`\`\`bash
 mkdir -p ~/f1tenth_ws/src
 cd ~/f1tenth_ws/src
-git clone https://github.com/juliejpn6/rc-car_wall_trace.git f1tenth_system
+git clone https://github.com/juliejpn6/rc-car_wall_trace.git
+\`\`\`
+
+クローン後のフォルダ構成：
+\`\`\`
+~/f1tenth_ws/src/rc-car_wall_trace/
+└── f1tenth_system/
+    ├── ackermann_mux/
+    ├── scripts/
+    └── ...
 \`\`\`
 
 ### ② pigpiodを起動
@@ -80,7 +89,7 @@ sudo systemctl start pigpiod
 🖥️ **ホスト（RPi）** にて：
 
 \`\`\`bash
-bash ~/f1tenth_ws/src/f1tenth_system/scripts/run_container.sh
+bash ~/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/run_container.sh
 \`\`\`
 
 ### ④ ビルド
@@ -88,7 +97,7 @@ bash ~/f1tenth_ws/src/f1tenth_system/scripts/run_container.sh
 🐳 **Docker内** にて：
 
 \`\`\`bash
-bash /root/f1tenth_ws/src/f1tenth_system/scripts/build.sh
+bash /root/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/build.sh
 source /root/f1tenth_ws/install/setup.bash
 \`\`\`
 
@@ -97,7 +106,7 @@ source /root/f1tenth_ws/install/setup.bash
 🐳 **Docker内** にて：
 
 \`\`\`bash
-bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh
+bash /root/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/start_drive.sh
 \`\`\`
 
 ### ⑥ 走行開始・停止
@@ -106,13 +115,13 @@ bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh
 
 \`\`\`bash
 # 別ターミナルでコンテナに接続（ホスト側で実行）
-bash ~/f1tenth_ws/src/f1tenth_system/scripts/resume_container.sh
+bash ~/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/resume_container.sh
 
 # 走行開始
-bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh --enable
+bash /root/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/start_drive.sh --enable
 
 # 走行停止
-bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh --disable
+bash /root/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/start_drive.sh --disable
 \`\`\`
 
 ---
@@ -133,15 +142,15 @@ bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh --disable
 \`\`\`bash
 # ① ホスト側
 sudo systemctl start pigpiod
-bash ~/f1tenth_ws/src/f1tenth_system/scripts/resume_container.sh
+bash ~/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/resume_container.sh
 
 # ② Docker内
 source /root/f1tenth_ws/install/setup.bash
-bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh
+bash /root/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/start_drive.sh
 
 # ③ 別ターミナル（ホスト側で実行してDocker内に入る）
-bash ~/f1tenth_ws/src/f1tenth_system/scripts/resume_container.sh
-bash /root/f1tenth_ws/src/f1tenth_system/scripts/start_drive.sh --enable
+bash ~/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/resume_container.sh
+bash /root/f1tenth_ws/src/rc-car_wall_trace/f1tenth_system/scripts/start_drive.sh --enable
 \`\`\`
 
 ---
