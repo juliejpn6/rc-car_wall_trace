@@ -11,10 +11,10 @@ IMAGE_NAME="ros2_humble"
 DOCKERFILE_DIR="$HOME/ros2_docker"
 
 # すでにイメージが存在する場合はスキップ
-if sudo docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
+if docker image inspect "$IMAGE_NAME" > /dev/null 2>&1; then
     echo "[INFO] イメージ '${IMAGE_NAME}' はすでに存在します"
     echo "       再ビルドする場合は以下を実行してください："
-    echo "       sudo docker rmi ${IMAGE_NAME}"
+    echo "       docker rmi ${IMAGE_NAME}"
     exit 0
 fi
 
@@ -58,7 +58,7 @@ echo "[INFO] Dockerイメージをビルドします: ${IMAGE_NAME}"
 echo "       ※ 初回は10〜20分かかります..."
 echo ""
 
-sudo docker build -t "$IMAGE_NAME" "$DOCKERFILE_DIR"
+docker build -t "$IMAGE_NAME" "$DOCKERFILE_DIR"
 
 if [ $? -ne 0 ]; then
     echo "[ERROR] イメージのビルドに失敗しました"

@@ -11,14 +11,14 @@ WORKSPACE="$HOME/f1tenth_ws"
 
 mkdir -p "$WORKSPACE"
 
-if sudo docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
     echo "[INFO] 既存のコンテナ '${CONTAINER_NAME}' を削除します..."
-    sudo docker rm -f "$CONTAINER_NAME"
+    docker rm -f "$CONTAINER_NAME"
 fi
 
 echo "[INFO] コンテナを起動します: ${CONTAINER_NAME}"
 
-sudo docker run -it \
+docker run -it \
     --name "$CONTAINER_NAME" \
     --privileged \
     --network host \
