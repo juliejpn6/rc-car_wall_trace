@@ -1,13 +1,28 @@
 #!/usr/bin/env bash
+# =============================================================================
+# run_container.sh - 初回起動用スクリプト
+# =============================================================================
+# 使い方: bash scripts/run_container.sh
+# =============================================================================
 
-# create workspace on host, in home directory
-mkdir -p $HOME/f1tenth_ws
+CONTAINER_NAME="ros2_humble"
+IMAGE_NAME="ros2_humble"
+WORKSPACE="$HOME/f1tenth_ws"
 
-# give docker permission to use X
-sudo xhost +si:localuser:root
+mkdir -p "$WORKSPACE"
 
-# run container with privilege mode, host network, display, and mount workspace on host
-sudo docker run --runtime nvidia -it --privileged --network host -e DISPLAY=$DISPLAY \
-    -v /tmp/.X11-unix/:/tmp/.X11-unix -v /dev:/dev \
-    --mount type=volume,dst=/f1tenth_ws,volume-driver=local,volume-opt=type=none,volume-opt=o=bind,volume-opt=device=$HOME/f1tenth_ws \
-    f1tenth/focal-l4t-foxy:f1tenth-stack
+if sudo docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+    echo "[INFO] 既存のコンテナ '${CONTAINER_NAME}' を削除します..."
+    sudo docker rm -f "$CONTAINER_NAME"
+fi
+
+echo "[INFO] コンテナを起動します: ${CONTAINER_NAME}"
+
+sudo docker run -it \
+    --name "$CONTAINER_NAME" \
+    --privileged \
+    --network host \
+    -v "$WORKSPACE":/root/f1tenth_ws \
+    -v /dev:/dev \
+    "$IMAGE_NAME" \
+    bash
