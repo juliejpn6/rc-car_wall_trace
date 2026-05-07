@@ -6,7 +6,6 @@
 # [Sensing]
 #   - sllidar_ros2        : RPLidar A1-M8 LiDAR -> /scan
 #   - encoder_odometry    : Optical encoder -> /odom + TF(odom -> base_link)
-#   - camera_ros          : Pi Camera V3 Wide -> /camera/image_raw
 #
 # [Control]
 #   - pigpio_pwm_driver   : /drive -> Steering & throttle PWM
@@ -17,7 +16,7 @@
 #                           (starts DISABLED, enable via service call)
 #
 # [TF]
-#   - static TF           : base_link -> laser, base_link -> camera_link
+#   - static TF           : base_link -> laser
 #
 # Usage:
 #   ros2 launch f1tenth_stack bringup_tt02_launch.py
@@ -29,7 +28,6 @@
 #   ros2 service call /wall_follow_node/enable std_srvs/srv/SetBool "{data: false}"
 # =============================================================================
 
-import math
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
@@ -79,18 +77,6 @@ def generate_launch_description():
         description='LiDAR TF frame ID'
     )
 
-    # Camera arguments
-    camera_width_la = DeclareLaunchArgument(
-        'camera_width',
-        default_value='640',
-        description='Camera image width'
-    )
-    camera_height_la = DeclareLaunchArgument(
-        'camera_height',
-        default_value='480',
-        description='Camera image height'
-    )
-
     # =========================================================================
     # Sensing Nodes
     # =========================================================================
@@ -128,19 +114,6 @@ def generate_launch_description():
             'publish_tf': True,
             'odom_frame': 'odom',
             'base_frame': 'base_link',
-        }]
-    )
-
-    # --- Camera (Pi Camera V3 Wide via camera_ros) ---
-    camera_node = Node(
-        package='camera_ros',
-        executable='camera_node',
-        name='camera',
-        output='screen',
-        parameters=[{
-            'width': LaunchConfiguration('camera_width'),
-            'height': LaunchConfiguration('camera_height'),
-            'format': 'RGB888',
         }]
     )
 
@@ -199,7 +172,7 @@ def generate_launch_description():
     #   x = 0.23m (23cm forward from rear axle)
     #   y = 0.0m  (centered on vehicle)
     #   z = 0.12m (12cm above ground)
-    #   No rotation (LiDAR mounted level)
+    #   yaw = 3.14159 rad (LiDAR mounted 180deg inverted)
     static_tf_base_to_laser = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
@@ -210,35 +183,9 @@ def generate_launch_description():
             '--z', '0.12',
             '--roll', '0.0',
             '--pitch', '0.0',
-            '--yaw', '0.0',
+            '--yaw', '3.14159',
             '--frame-id', 'base_link',
             '--child-frame-id', 'laser',
-        ]
-    )
-
-    # =========================================================================
-    # Static TF: base_link -> camera_link
-    # =========================================================================
-    # Measured values for TT-02:
-    #   x = 0.22m  (22cm forward from rear axle)
-    #   y = -0.005m (-0.5cm, offset right; ROS convention: left=+Y)
-    #   z = 0.19m  (19cm above ground)
-    #   pitch = -10 deg (tilted downward)
-    camera_pitch_rad = -10.0 * math.pi / 180.0  # -0.1745 rad
-
-    static_tf_base_to_camera = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_tf_base_to_camera',
-        arguments=[
-            '--x', '0.22',
-            '--y', '-0.005',
-            '--z', '0.19',
-            '--roll', '0.0',
-            '--pitch', str(round(camera_pitch_rad, 4)),
-            '--yaw', '0.0',
-            '--frame-id', 'base_link',
-            '--child-frame-id', 'camera_link',
         ]
     )
 
@@ -252,13 +199,10 @@ def generate_launch_description():
     ld.add_action(wall_follow_la)
     ld.add_action(lidar_serial_port_la)
     ld.add_action(lidar_frame_id_la)
-    ld.add_action(camera_width_la)
-    ld.add_action(camera_height_la)
 
     # Sensing
     ld.add_action(lidar_node)
     ld.add_action(encoder_odom_node)
-    ld.add_action(camera_node)
 
     # Control
     ld.add_action(pwm_driver_node)
@@ -269,6 +213,5 @@ def generate_launch_description():
 
     # Static TF
     ld.add_action(static_tf_base_to_laser)
-    ld.add_action(static_tf_base_to_camera)
 
     return ld
